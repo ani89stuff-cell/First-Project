@@ -70,6 +70,18 @@ export async function createBook(
   return data.id
 }
 
+export async function fetchBookById(id: string): Promise<Book | null> {
+  const { data, error } = await supabase
+    .from('books')
+    .select(BOOK_SELECT)
+    .eq('id', id)
+    .maybeSingle()
+
+  if (error) throw error
+  if (!data) return null
+  return mapBookRow(data)
+}
+
 export async function searchBooks(
   tab: SearchTab,
   query: string,
