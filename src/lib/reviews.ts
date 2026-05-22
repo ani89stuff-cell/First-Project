@@ -89,3 +89,49 @@ export async function submitReview(input: SubmitReviewInput): Promise<void> {
 
   if (error) throw error
 }
+
+export type InsertBookReviewInput = {
+  reviewerName: string
+  reviewText: string
+  readabilityScore: number
+}
+
+export async function insertBookReview(
+  bookId: string,
+  input: InsertBookReviewInput,
+): Promise<Review> {
+  const { data, error } = await supabase
+    .from('reviews')
+    .insert({
+      book_id: bookId,
+      reviewer_name: input.reviewerName.trim(),
+      review_text: input.reviewText.trim(),
+      readability_score: input.readabilityScore,
+    })
+    .select(
+      'id, book_id, reviewer_name, review_text, readability_score, created_at',
+    )
+    .single()
+
+  if (error) throw error
+  return mapReviewRow(data)
+}
+
+function toReview(display: DisplayReview): Review {
+  return {
+    id: display.id,
+    bookId: display.bookId,
+    reviewerName: display.reviewerName,
+    reviewText: display.reviewText,
+    readabilityScore: display.readabilityScore,
+    createdAt: display.createdAt,
+  }
+}
+
+export function addReviewToDisplayList(
+  existing: DisplayReview[],
+  newReview: Review,
+): DisplayReview[] {
+  const reviews: Review[] = [...existing.map(toReview), newReview]
+  return orderReviewsForDisplay(reviews)
+}

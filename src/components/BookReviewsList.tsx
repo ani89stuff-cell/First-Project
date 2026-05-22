@@ -1,37 +1,12 @@
-import { useEffect, useState } from 'react'
-import { fetchReviewsByBookId } from '../lib/reviews'
 import type { DisplayReview } from '../types/review'
 import { ReviewCard } from './ReviewCard'
 
 type BookReviewsListProps = {
-  bookId: string
+  reviews: DisplayReview[]
+  loading: boolean
 }
 
-export function BookReviewsList({ bookId }: BookReviewsListProps) {
-  const [reviews, setReviews] = useState<DisplayReview[]>([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    let cancelled = false
-
-    async function loadReviews() {
-      setLoading(true)
-      try {
-        const data = await fetchReviewsByBookId(bookId)
-        if (!cancelled) setReviews(data)
-      } catch {
-        if (!cancelled) setReviews([])
-      } finally {
-        if (!cancelled) setLoading(false)
-      }
-    }
-
-    loadReviews()
-    return () => {
-      cancelled = true
-    }
-  }, [bookId])
-
+export function BookReviewsList({ reviews, loading }: BookReviewsListProps) {
   return (
     <section className="border-t border-input-border bg-form-cream py-12 sm:py-16 lg:py-20">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">

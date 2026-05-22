@@ -1,8 +1,15 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import { AddBookReviewForm } from '../components/AddBookReviewForm'
 import { BookReviewsList } from '../components/BookReviewsList'
+import { Toast } from '../components/Toast'
 import { fetchBookById } from '../lib/books'
+import {
+  addReviewToDisplayList,
+  fetchReviewsByBookId,
+} from '../lib/reviews'
 import type { Book } from '../types/book'
+import type { DisplayReview, Review } from '../types/review'
 import { getReadabilityBadgeClasses } from '../utils/readability'
 
 function BookDetailBackLink() {
@@ -24,6 +31,34 @@ function BookDetailPageContent({ id }: { id: string }) {
   const [book, setBook] = useState<Book | null>(null)
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
+  const [reviews, setReviews] = useState<DisplayReview[]>([])
+  const [reviewsLoading, setReviewsLoading] = useState(true)
+  const [toastMessage, setToastMessage] = useState('')
+  const [toastVisible, setToastVisible] = useState(false)
+
+  const handleToast = useCallback((message: string) => {
+    setToastMessage(message)
+    setToastVisible(true)
+  }, [])
+
+  const handleDismissToast = useCallback(() => {
+    setToastVisible(false)
+  }, [])
+
+  const handleReviewSuccess = useCallback(
+    async (newReview: Review) => {
+      setReviews((prev) => addReviewToDisplayList(prev, newReview))
+      setReviewsLoading(false)
+
+      try {
+        const updatedBook = await fetchBookById(id)
+        if (updatedBook) setBook(updatedBook)
+      } catch {
+        // Header stats refresh failed silently; list still updated
+      }
+    },
+    [id],
+  )
 
   useEffect(() => {
     let cancelled = false
@@ -55,6 +90,33 @@ function BookDetailPageContent({ id }: { id: string }) {
       cancelled = true
     }
   }, [id])
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function loadReviews() {
+      setReviewsLoading(true)
+      try {
+        const data = await fetchReviewsByBookId(id)
+        if (!cancelled) setReviews(data)
+      } catch {
+        if (!cancelled) setReviews([])
+      } finally {
+        if (!cancelled) setReviewsLoading(false)
+      }
+    }
+
+    loadReviews()
+    return () => {
+      cancelled = true
+    }
+  }, [id])
+
+  useEffect(() => {
+    if (!toastVisible) return
+    const timer = window.setTimeout(() => setToastVisible(false), 4000)
+    return () => window.clearTimeout(timer)
+  }, [toastVisible])
 
   const initial = book?.title.charAt(0).toUpperCase() ?? ''
   const hasReviews = book ? book.reviewCount > 0 : false
@@ -122,7 +184,19 @@ function BookDetailPageContent({ id }: { id: string }) {
               </div>
             </header>
 
-            <BookReviewsList bookId={id} />
+            <AddBookReviewForm
+              bookId={id}
+              onSuccess={handleReviewSuccess}
+              onToast={handleToast}
+            />
+
+            <BookReviewsList reviews={reviews} loading={reviewsLoading} />
+
+            <Toast
+              message={toastMessage}
+              visible={toastVisible}
+              onDismiss={handleDismissToast}
+            />
           </>
         )
       )}
