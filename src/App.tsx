@@ -4,13 +4,10 @@ import { Hero } from './components/Hero'
 import { Navbar } from './components/Navbar'
 import { SearchDiscoverSection } from './components/SearchDiscoverSection'
 import { Toast } from './components/Toast'
-import type { Book } from './types/book'
 
 function App() {
   const [toastMessage, setToastMessage] = useState('')
   const [toastVisible, setToastVisible] = useState(false)
-  const [modalOpen, setModalOpen] = useState(false)
-  const [selectedBook, setSelectedBook] = useState<Book | null>(null)
   const [searchRefreshKey, setSearchRefreshKey] = useState(0)
 
   const handleToast = useCallback((message: string) => {
@@ -23,15 +20,6 @@ function App() {
 
   const handleDismissToast = useCallback(() => {
     setToastVisible(false)
-  }, [])
-
-  const handleBookClick = useCallback((book: Book) => {
-    setSelectedBook(book)
-    setModalOpen(true)
-  }, [])
-
-  const handleCloseModal = useCallback(() => {
-    setModalOpen(false)
   }, [])
 
   useEffect(() => {
@@ -48,13 +36,7 @@ function App() {
         <Hero />
         <AddReviewSection onToast={handleToast} />
 
-        <SearchDiscoverSection
-          onBookClick={handleBookClick}
-          selectedBook={selectedBook}
-          modalOpen={modalOpen}
-          onCloseModal={handleCloseModal}
-          refreshKey={searchRefreshKey}
-        />
+        <SearchDiscoverSection refreshKey={searchRefreshKey} />
 
         <section
           id="about"

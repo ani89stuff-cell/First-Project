@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { searchBooks } from '../lib/books'
 import { GENRES, type Book, type SearchTab } from '../types/book'
 import { useDebounce } from '../hooks/useDebounce'
 import { BookCard } from './BookCard'
-import { Modal } from './Modal'
 
 const TABS: { id: SearchTab; label: string }[] = [
   { id: 'book', label: 'By Book Name' },
@@ -14,20 +14,13 @@ const TABS: { id: SearchTab; label: string }[] = [
 const EMPTY_MESSAGE = 'No books found. Be the first to add a review.'
 
 type SearchDiscoverSectionProps = {
-  onBookClick: (book: Book) => void
-  selectedBook: Book | null
-  modalOpen: boolean
-  onCloseModal: () => void
   refreshKey?: number
 }
 
 export function SearchDiscoverSection({
-  onBookClick,
-  selectedBook,
-  modalOpen,
-  onCloseModal,
   refreshKey = 0,
 }: SearchDiscoverSectionProps) {
+  const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState<SearchTab>('book')
   const [query, setQuery] = useState('')
   const [books, setBooks] = useState<Book[]>([])
@@ -162,36 +155,13 @@ export function SearchDiscoverSection({
                 <BookCard
                   key={book.id}
                   book={book}
-                  onClick={() => onBookClick(book)}
+                  onClick={() => navigate(`/book/${book.id}`)}
                 />
               ))
             )}
           </div>
         </div>
       </div>
-
-      <Modal open={modalOpen} onClose={onCloseModal}>
-        <div className="text-center">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-amber-brand/15 text-2xl">
-            📚
-          </div>
-          <h3 className="font-display text-xl font-bold text-hero-navy">
-            Full book reviews — coming soon.
-          </h3>
-          {selectedBook && (
-            <p className="mt-2 text-sm text-navy-700/80">
-              {selectedBook.title} by {selectedBook.author}
-            </p>
-          )}
-          <button
-            type="button"
-            onClick={onCloseModal}
-            className="mt-6 rounded-lg bg-hero-navy px-5 py-2.5 text-sm font-medium text-white transition hover:bg-navy-800"
-          >
-            Got it
-          </button>
-        </div>
-      </Modal>
     </section>
   )
 }
