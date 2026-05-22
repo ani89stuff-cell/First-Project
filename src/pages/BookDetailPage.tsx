@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import { BookReviewsList } from '../components/BookReviewsList'
 import { fetchBookById } from '../lib/books'
 import type { Book } from '../types/book'
 import { getReadabilityBadgeClasses } from '../utils/readability'
@@ -74,51 +75,55 @@ function BookDetailPageContent({ id }: { id: string }) {
         </div>
       ) : (
         book && (
-          <header className="relative w-full overflow-hidden bg-hero-navy text-white">
-            <div
-              className="hero-pattern pointer-events-none absolute inset-0 opacity-[0.35]"
-              aria-hidden
-            />
-            <div className="relative mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8 lg:py-20">
-              <div className="flex flex-col gap-8 sm:flex-row sm:items-center sm:gap-10 lg:gap-14">
-                <div className="flex shrink-0 items-center justify-center sm:justify-start">
-                  <span
-                    className="font-display font-semibold leading-none text-amber-brand"
-                    style={{ fontSize: '120px' }}
-                    aria-hidden
-                  >
-                    {initial}
-                  </span>
-                </div>
-
-                <div className="min-w-0 flex-1">
-                  <h1 className="font-display text-3xl font-bold leading-tight tracking-tight sm:text-4xl lg:text-5xl">
-                    {book.title}
-                  </h1>
-                  <p className="mt-2 text-lg text-white/65 sm:mt-3 sm:text-xl">
-                    {book.author}
-                  </p>
-
-                  <div className="mt-5 flex flex-wrap items-center gap-3 sm:mt-6">
-                    <span className="rounded-full border-2 border-amber-brand px-3 py-1 text-sm font-medium text-amber-brand">
-                      {book.genre}
+          <>
+            <header className="relative w-full overflow-hidden bg-hero-navy text-white">
+              <div
+                className="hero-pattern pointer-events-none absolute inset-0 opacity-[0.35]"
+                aria-hidden
+              />
+              <div className="relative mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8 lg:py-20">
+                <div className="flex flex-col gap-8 sm:flex-row sm:items-center sm:gap-10 lg:gap-14">
+                  <div className="flex shrink-0 items-center justify-center sm:justify-start">
+                    <span
+                      className="font-display font-semibold leading-none text-amber-brand"
+                      style={{ fontSize: '120px' }}
+                      aria-hidden
+                    >
+                      {initial}
                     </span>
-                    {hasReviews && (
-                      <span
-                        className={`rounded-full px-3 py-1 text-sm font-semibold ring-1 ${getReadabilityBadgeClasses(book.avgReadabilityScore)}`}
-                      >
-                        {book.avgReadabilityScore.toFixed(1)}
+                  </div>
+
+                  <div className="min-w-0 flex-1">
+                    <h1 className="font-display text-3xl font-bold leading-tight tracking-tight sm:text-4xl lg:text-5xl">
+                      {book.title}
+                    </h1>
+                    <p className="mt-2 text-lg text-white/65 sm:mt-3 sm:text-xl">
+                      {book.author}
+                    </p>
+
+                    <div className="mt-5 flex flex-wrap items-center gap-3 sm:mt-6">
+                      <span className="rounded-full border-2 border-amber-brand px-3 py-1 text-sm font-medium text-amber-brand">
+                        {book.genre}
                       </span>
-                    )}
-                    <span className="text-sm text-white/55">
-                      {book.reviewCount}{' '}
-                      {book.reviewCount === 1 ? 'review' : 'reviews'}
-                    </span>
+                      {hasReviews && (
+                        <span
+                          className={`rounded-full px-3 py-1 text-sm font-semibold ring-1 ${getReadabilityBadgeClasses(book.avgReadabilityScore)}`}
+                        >
+                          {book.avgReadabilityScore.toFixed(1)}
+                        </span>
+                      )}
+                      <span className="text-sm text-white/55">
+                        {book.reviewCount}{' '}
+                        {book.reviewCount === 1 ? 'review' : 'reviews'}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </header>
+            </header>
+
+            <BookReviewsList bookId={id} />
+          </>
         )
       )}
     </div>
