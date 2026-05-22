@@ -1,11 +1,13 @@
 type ReadabilityScoreSelectorProps = {
-  value: number
+  value: number | null
   onChange: (score: number) => void
+  error?: string
 }
 
 export function ReadabilityScoreSelector({
   value,
   onChange,
+  error,
 }: ReadabilityScoreSelectorProps) {
   return (
     <fieldset>
@@ -30,6 +32,7 @@ export function ReadabilityScoreSelector({
           )
         })}
       </div>
+      {error && <p className="mt-1.5 text-sm text-red-600">{error}</p>}
     </fieldset>
   )
 }

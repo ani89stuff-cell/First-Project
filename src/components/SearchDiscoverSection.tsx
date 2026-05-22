@@ -1,5 +1,7 @@
-import { useMemo, useState } from 'react'
-import { GENRES, MOCK_BOOKS, type Book, type SearchTab } from '../data/mockBooks'
+import { useEffect, useState } from 'react'
+import { searchBooks } from '../lib/books'
+import { GENRES, type Book, type SearchTab } from '../types/book'
+import { useDebounce } from '../hooks/useDebounce'
 import { BookCard } from './BookCard'
 import { Modal } from './Modal'
 
@@ -9,11 +11,14 @@ const TABS: { id: SearchTab; label: string }[] = [
   { id: 'genre', label: 'By Genre' },
 ]
 
+const EMPTY_MESSAGE = 'No books found. Be the first to add a review.'
+
 type SearchDiscoverSectionProps = {
   onBookClick: (book: Book) => void
   selectedBook: Book | null
   modalOpen: boolean
   onCloseModal: () => void
+  refreshKey?: number
 }
 
 export function SearchDiscoverSection({
@@ -21,26 +26,42 @@ export function SearchDiscoverSection({
   selectedBook,
   modalOpen,
   onCloseModal,
+  refreshKey = 0,
 }: SearchDiscoverSectionProps) {
   const [activeTab, setActiveTab] = useState<SearchTab>('book')
   const [query, setQuery] = useState('')
+  const [books, setBooks] = useState<Book[]>([])
+  const [loading, setLoading] = useState(true)
+  const [hasSearched, setHasSearched] = useState(false)
 
-  const filteredBooks = useMemo(() => {
-    if (activeTab === 'genre') {
-      if (!query) return MOCK_BOOKS
-      return MOCK_BOOKS.filter((book) => book.genre === query)
+  const debouncedQuery = useDebounce(query, activeTab === 'genre' ? 0 : 300)
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function loadBooks() {
+      setLoading(true)
+      try {
+        const results = await searchBooks(activeTab, debouncedQuery)
+        if (!cancelled) {
+          setBooks(results)
+          setHasSearched(true)
+        }
+      } catch {
+        if (!cancelled) {
+          setBooks([])
+          setHasSearched(true)
+        }
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
     }
 
-    const q = query.trim().toLowerCase()
-    if (!q) return MOCK_BOOKS
-
-    return MOCK_BOOKS.filter((book) => {
-      if (activeTab === 'book') {
-        return book.title.toLowerCase().includes(q)
-      }
-      return book.author.toLowerCase().includes(q)
-    })
-  }, [activeTab, query])
+    loadBooks()
+    return () => {
+      cancelled = true
+    }
+  }, [activeTab, debouncedQuery, refreshKey])
 
   const placeholder =
     activeTab === 'book'
@@ -50,7 +71,11 @@ export function SearchDiscoverSection({
   function handleTabChange(tab: SearchTab) {
     setActiveTab(tab)
     setQuery('')
+    setHasSearched(false)
   }
+
+  const showEmptyMessage =
+    hasSearched && !loading && books.length === 0
 
   return (
     <section
@@ -124,18 +149,22 @@ export function SearchDiscoverSection({
           </div>
 
           <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {filteredBooks.length > 0 ? (
-              filteredBooks.map((book) => (
+            {loading ? (
+              <p className="col-span-full py-12 text-center text-navy-700/70">
+                Loading books…
+              </p>
+            ) : showEmptyMessage ? (
+              <p className="col-span-full py-12 text-center text-navy-700/70">
+                {EMPTY_MESSAGE}
+              </p>
+            ) : (
+              books.map((book) => (
                 <BookCard
                   key={book.id}
                   book={book}
                   onClick={() => onBookClick(book)}
                 />
               ))
-            ) : (
-              <p className="col-span-full py-12 text-center text-navy-700/70">
-                No books match your search. Try a different term.
-              </p>
             )}
           </div>
         </div>

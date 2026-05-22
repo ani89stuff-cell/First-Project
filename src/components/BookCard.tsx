@@ -1,4 +1,4 @@
-import type { Book } from '../data/mockBooks'
+import type { Book } from '../types/book'
 import { getReadabilityBadgeClasses } from '../utils/readability'
 
 type BookCardProps = {
@@ -8,6 +8,7 @@ type BookCardProps = {
 
 export function BookCard({ book, onClick }: BookCardProps) {
   const initial = book.title.charAt(0).toUpperCase()
+  const hasReviews = book.reviewCount > 0
 
   return (
     <button
@@ -31,13 +32,15 @@ export function BookCard({ book, onClick }: BookCardProps) {
           <span className="rounded-full bg-hero-navy/8 px-2.5 py-0.5 text-xs font-medium text-hero-navy">
             {book.genre}
           </span>
-          <span
-            className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ${getReadabilityBadgeClasses(book.readabilityScore)}`}
-          >
-            {book.readabilityScore.toFixed(1)}
-          </span>
+          {hasReviews && (
+            <span
+              className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ${getReadabilityBadgeClasses(book.avgReadabilityScore)}`}
+            >
+              {book.avgReadabilityScore.toFixed(1)}
+            </span>
+          )}
           <span className="text-xs text-navy-700/60">
-            {book.reviewCount} reviews
+            {book.reviewCount} {book.reviewCount === 1 ? 'review' : 'reviews'}
           </span>
         </div>
       </div>

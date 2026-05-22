@@ -4,15 +4,21 @@ import { Hero } from './components/Hero'
 import { Navbar } from './components/Navbar'
 import { SearchDiscoverSection } from './components/SearchDiscoverSection'
 import { Toast } from './components/Toast'
-import type { Book } from './data/mockBooks'
+import type { Book } from './types/book'
 
 function App() {
+  const [toastMessage, setToastMessage] = useState('')
   const [toastVisible, setToastVisible] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
   const [selectedBook, setSelectedBook] = useState<Book | null>(null)
+  const [searchRefreshKey, setSearchRefreshKey] = useState(0)
 
-  const handleSubmitSuccess = useCallback(() => {
+  const handleToast = useCallback((message: string) => {
+    setToastMessage(message)
     setToastVisible(true)
+    if (message === 'Review posted successfully') {
+      setSearchRefreshKey((key) => key + 1)
+    }
   }, [])
 
   const handleDismissToast = useCallback(() => {
@@ -40,13 +46,14 @@ function App() {
 
       <main>
         <Hero />
-        <AddReviewSection onSubmitSuccess={handleSubmitSuccess} />
+        <AddReviewSection onToast={handleToast} />
 
         <SearchDiscoverSection
           onBookClick={handleBookClick}
           selectedBook={selectedBook}
           modalOpen={modalOpen}
           onCloseModal={handleCloseModal}
+          refreshKey={searchRefreshKey}
         />
 
         <section
@@ -71,7 +78,7 @@ function App() {
       </footer>
 
       <Toast
-        message="Review posted!"
+        message={toastMessage}
         visible={toastVisible}
         onDismiss={handleDismissToast}
       />
