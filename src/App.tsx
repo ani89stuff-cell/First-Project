@@ -4,6 +4,7 @@ import { Hero } from './components/Hero'
 import { Navbar } from './components/Navbar'
 import { SearchDiscoverSection } from './components/SearchDiscoverSection'
 import { Toast } from './components/Toast'
+import { WhatsHotSection } from './components/WhatsHotSection'
 
 function App() {
   const [toastMessage, setToastMessage] = useState('')
@@ -35,6 +36,8 @@ function App() {
       <main>
         <Hero />
         <AddReviewSection onToast={handleToast} />
+
+        <WhatsHotSection refreshKey={searchRefreshKey} />
 
         <SearchDiscoverSection refreshKey={searchRefreshKey} />
 
