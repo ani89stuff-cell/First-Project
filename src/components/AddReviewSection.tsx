@@ -1,8 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
+import type { User } from '@supabase/supabase-js'
+import { useAuth } from '../hooks/useAuth'
+import { useDebounce } from '../hooks/useDebounce'
 import { searchBookSuggestions } from '../lib/books'
 import { submitReview } from '../lib/reviews'
 import { GENRES, type BookSuggestion } from '../types/book'
-import { useDebounce } from '../hooks/useDebounce'
+import { getUserDisplayName } from '../utils/userDisplayName'
 import {
   hasValidationErrors,
   validateReviewForm,
@@ -23,7 +26,13 @@ const emptyForm = {
   reviewerName: '',
 }
 
+function defaultReviewerNameForUser(user: User | null): string {
+  if (!user) return ''
+  return getUserDisplayName(user.user_metadata, user.email)
+}
+
 export function AddReviewSection({ onToast }: AddReviewSectionProps) {
+  const { user, loading: authLoading } = useAuth()
   const [bookName, setBookName] = useState(emptyForm.bookName)
   const [author, setAuthor] = useState(emptyForm.author)
   const [genre, setGenre] = useState(emptyForm.genre)
@@ -40,8 +49,23 @@ export function AddReviewSection({ onToast }: AddReviewSectionProps) {
   const [submitting, setSubmitting] = useState(false)
   const wrapperRef = useRef<HTMLDivElement>(null)
   const autocompleteSelectionRef = useRef(false)
+  const prefilledUserIdRef = useRef<string | null>(null)
 
   const debouncedBookName = useDebounce(bookName, 300)
+
+  useEffect(() => {
+    if (authLoading) return
+
+    if (user && prefilledUserIdRef.current !== user.id) {
+      prefilledUserIdRef.current = user.id
+      setReviewerName(defaultReviewerNameForUser(user))
+      return
+    }
+
+    if (!user) {
+      prefilledUserIdRef.current = null
+    }
+  }, [user, authLoading])
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -123,7 +147,7 @@ export function AddReviewSection({ onToast }: AddReviewSectionProps) {
     setGenre(emptyForm.genre)
     setReview(emptyForm.review)
     setReadabilityScore(emptyForm.readabilityScore)
-    setReviewerName(emptyForm.reviewerName)
+    setReviewerName(defaultReviewerNameForUser(user))
     setSelectedBookId(null)
     autocompleteSelectionRef.current = false
     setSuggestions([])
@@ -157,6 +181,7 @@ export function AddReviewSection({ onToast }: AddReviewSectionProps) {
         reviewText: review,
         readabilityScore: readabilityScore as number,
         selectedBookId,
+        userId: user?.id ?? null,
       })
       onToast('Review posted successfully')
       clearForm()

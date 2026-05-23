@@ -12,6 +12,7 @@ create table if not exists books (
 create table if not exists reviews (
   id uuid primary key default gen_random_uuid(),
   book_id uuid not null references books (id) on delete cascade,
+  user_id uuid references auth.users (id) on delete set null,
   reviewer_name text not null,
   review_text text not null,
   readability_score numeric(3, 1) not null check (readability_score >= 1 and readability_score <= 10),
@@ -23,6 +24,7 @@ create index if not exists books_title_idx on books (title);
 create index if not exists books_author_idx on books (author);
 create index if not exists books_genre_idx on books (genre);
 create index if not exists reviews_book_id_idx on reviews (book_id);
+create index if not exists reviews_user_id_idx on reviews (user_id);
 
 alter table books enable row level security;
 alter table reviews enable row level security;

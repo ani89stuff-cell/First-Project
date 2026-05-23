@@ -1,6 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import type { User } from '@supabase/supabase-js'
+import { useAuth } from '../hooks/useAuth'
 import { insertBookReview } from '../lib/reviews'
 import type { Review } from '../types/review'
+import { getUserDisplayName } from '../utils/userDisplayName'
 import {
   hasBookDetailValidationErrors,
   validateBookDetailReviewForm,
@@ -20,11 +23,17 @@ const emptyForm = {
   reviewerName: '',
 }
 
+function defaultReviewerNameForUser(user: User | null): string {
+  if (!user) return ''
+  return getUserDisplayName(user.user_metadata, user.email)
+}
+
 export function AddBookReviewForm({
   bookId,
   onSuccess,
   onToast,
 }: AddBookReviewFormProps) {
+  const { user, loading: authLoading } = useAuth()
   const [review, setReview] = useState(emptyForm.review)
   const [readabilityScore, setReadabilityScore] = useState<number | null>(
     emptyForm.readabilityScore,
@@ -32,11 +41,26 @@ export function AddBookReviewForm({
   const [reviewerName, setReviewerName] = useState(emptyForm.reviewerName)
   const [errors, setErrors] = useState<BookDetailReviewFormErrors>({})
   const [submitting, setSubmitting] = useState(false)
+  const prefilledUserIdRef = useRef<string | null>(null)
+
+  useEffect(() => {
+    if (authLoading) return
+
+    if (user && prefilledUserIdRef.current !== user.id) {
+      prefilledUserIdRef.current = user.id
+      setReviewerName(defaultReviewerNameForUser(user))
+      return
+    }
+
+    if (!user) {
+      prefilledUserIdRef.current = null
+    }
+  }, [user, authLoading])
 
   function clearForm() {
     setReview(emptyForm.review)
     setReadabilityScore(emptyForm.readabilityScore)
-    setReviewerName(emptyForm.reviewerName)
+    setReviewerName(defaultReviewerNameForUser(user))
     setErrors({})
   }
 
@@ -58,6 +82,7 @@ export function AddBookReviewForm({
         reviewerName,
         reviewText: review,
         readabilityScore: readabilityScore as number,
+        userId: user?.id ?? null,
       })
       onSuccess(newReview)
       clearForm()

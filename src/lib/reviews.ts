@@ -66,6 +66,7 @@ export type SubmitReviewInput = {
   reviewText: string
   readabilityScore: number
   selectedBookId: string | null
+  userId: string | null
 }
 
 export async function submitReview(input: SubmitReviewInput): Promise<void> {
@@ -82,6 +83,7 @@ export async function submitReview(input: SubmitReviewInput): Promise<void> {
 
   const { error } = await supabase.from('reviews').insert({
     book_id: bookId,
+    user_id: input.userId,
     reviewer_name: input.reviewerName.trim(),
     review_text: input.reviewText.trim(),
     readability_score: input.readabilityScore,
@@ -94,6 +96,7 @@ export type InsertBookReviewInput = {
   reviewerName: string
   reviewText: string
   readabilityScore: number
+  userId: string | null
 }
 
 export async function insertBookReview(
@@ -104,6 +107,7 @@ export async function insertBookReview(
     .from('reviews')
     .insert({
       book_id: bookId,
+      user_id: input.userId,
       reviewer_name: input.reviewerName.trim(),
       review_text: input.reviewText.trim(),
       readability_score: input.readabilityScore,
