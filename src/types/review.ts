@@ -10,3 +10,8 @@ export type Review = {
 export type DisplayReview = Review & {
   isFirstReview: boolean
 }
+
+export type UserReviewWithBook = Review & {
+  bookTitle: string
+  bookAuthor: string
+}

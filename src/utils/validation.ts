@@ -88,3 +88,36 @@ export function hasBookDetailValidationErrors(
 ): boolean {
   return Object.keys(errors).length > 0
 }
+
+export type ReviewEditFormValues = {
+  review: string
+  readabilityScore: number | null
+}
+
+export type ReviewEditFormErrors = Partial<
+  Record<keyof ReviewEditFormValues, string>
+>
+
+export function validateReviewEditForm(
+  values: ReviewEditFormValues,
+): ReviewEditFormErrors {
+  const errors: ReviewEditFormErrors = {}
+
+  if (!values.review.trim()) {
+    errors.review = 'Review is required.'
+  } else if (values.review.trim().length < 50) {
+    errors.review = 'Review must be at least 50 characters.'
+  }
+
+  if (values.readabilityScore === null) {
+    errors.readabilityScore = 'Please select a readability score.'
+  }
+
+  return errors
+}
+
+export function hasReviewEditValidationErrors(
+  errors: ReviewEditFormErrors,
+): boolean {
+  return Object.keys(errors).length > 0
+}

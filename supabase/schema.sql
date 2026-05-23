@@ -44,3 +44,8 @@ create policy "Allow public read on reviews"
 create policy "Allow public insert on reviews"
   on reviews for insert
   with check (true);
+
+create policy "Allow users to update own reviews"
+  on reviews for update
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);

@@ -1,6 +1,6 @@
 import { createBook, findBookByTitle } from './books'
 import { supabase } from './supabase'
-import type { DisplayReview, Review } from '../types/review'
+import type { DisplayReview, Review, UserReviewWithBook } from '../types/review'
 
 type ReviewRow = {
   id: string
@@ -138,4 +138,77 @@ export function addReviewToDisplayList(
 ): DisplayReview[] {
   const reviews: Review[] = [...existing.map(toReview), newReview]
   return orderReviewsForDisplay(reviews)
+}
+
+type BookJoinRow = { title: string; author: string }
+
+type UserReviewRow = ReviewRow & {
+  books: BookJoinRow | BookJoinRow[] | null
+}
+
+function resolveBookJoin(
+  books: BookJoinRow | BookJoinRow[] | null,
+): BookJoinRow | null {
+  if (!books) return null
+  if (Array.isArray(books)) return books[0] ?? null
+  return books
+}
+
+function mapUserReviewRow(row: UserReviewRow): UserReviewWithBook {
+  const book = resolveBookJoin(row.books)
+  return {
+    ...mapReviewRow(row),
+    bookTitle: book?.title ?? 'Unknown book',
+    bookAuthor: book?.author ?? 'Unknown author',
+  }
+}
+
+export async function fetchReviewsByUserId(
+  userId: string,
+): Promise<UserReviewWithBook[]> {
+  const { data, error } = await supabase
+    .from('reviews')
+    .select(
+      `
+      id,
+      book_id,
+      reviewer_name,
+      review_text,
+      readability_score,
+      created_at,
+      books ( title, author )
+    `,
+    )
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+
+  if (error) throw error
+  return (data ?? []).map((row) => mapUserReviewRow(row as UserReviewRow))
+}
+
+export type UpdateReviewInput = {
+  reviewText: string
+  readabilityScore: number
+}
+
+export async function updateReview(
+  reviewId: string,
+  userId: string,
+  input: UpdateReviewInput,
+): Promise<Review> {
+  const { data, error } = await supabase
+    .from('reviews')
+    .update({
+      review_text: input.reviewText.trim(),
+      readability_score: input.readabilityScore,
+    })
+    .eq('id', reviewId)
+    .eq('user_id', userId)
+    .select(
+      'id, book_id, reviewer_name, review_text, readability_score, created_at',
+    )
+    .single()
+
+  if (error) throw error
+  return mapReviewRow(data)
 }

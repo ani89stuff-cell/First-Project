@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 
 const NAV_LINKS = [
@@ -126,14 +127,14 @@ function NavbarAuth() {
           role="menu"
           className="absolute right-0 z-50 mt-2 min-w-[11rem] overflow-hidden rounded-lg border border-input-border bg-white py-1 shadow-lg"
         >
-          <a
-            href="#"
+          <Link
+            to="/my-activities"
             role="menuitem"
             className="block px-4 py-2.5 text-sm text-hero-navy transition hover:bg-hero-navy/5"
             onClick={() => setDropdownOpen(false)}
           >
             My Activities
-          </a>
+          </Link>
           <button
             type="button"
             role="menuitem"
