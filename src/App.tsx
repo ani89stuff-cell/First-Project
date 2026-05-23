@@ -54,6 +54,12 @@ function App() {
               you read, rate readability, and help fellow readers find their next
               great book.
             </p>
+            <a
+              href="#overview"
+              className="mt-6 inline-block text-sm font-medium text-amber-brand transition hover:text-amber-brand-hover"
+            >
+              Overview ↓
+            </a>
           </div>
         </section>
       </main>
