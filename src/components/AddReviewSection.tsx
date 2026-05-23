@@ -39,6 +39,7 @@ export function AddReviewSection({ onToast }: AddReviewSectionProps) {
   const [errors, setErrors] = useState<ReviewFormErrors>({})
   const [submitting, setSubmitting] = useState(false)
   const wrapperRef = useRef<HTMLDivElement>(null)
+  const autocompleteSelectionRef = useRef(false)
 
   const debouncedBookName = useDebounce(bookName, 300)
 
@@ -77,11 +78,35 @@ export function AddReviewSection({ onToast }: AddReviewSectionProps) {
 
   const visibleSuggestions = debouncedTerm ? suggestions : []
 
+  function clearAutocompleteLink() {
+    setAuthor('')
+    setGenre('')
+    setSelectedBookId(null)
+    autocompleteSelectionRef.current = false
+  }
+
+  function handleBookNameChange(value: string) {
+    if (autocompleteSelectionRef.current) {
+      clearAutocompleteLink()
+    }
+    setBookName(value)
+    if (!value.trim()) setSuggestions([])
+    setShowSuggestions(true)
+    setHighlightedIndex(-1)
+    setErrors((prev) => ({
+      ...prev,
+      bookName: undefined,
+      author: undefined,
+      genre: undefined,
+    }))
+  }
+
   function selectBook(book: BookSuggestion) {
     setBookName(book.title)
     setAuthor(book.author)
     setGenre(book.genre)
     setSelectedBookId(book.id)
+    autocompleteSelectionRef.current = true
     setShowSuggestions(false)
     setHighlightedIndex(-1)
     setErrors((prev) => ({
@@ -100,6 +125,7 @@ export function AddReviewSection({ onToast }: AddReviewSectionProps) {
     setReadabilityScore(emptyForm.readabilityScore)
     setReviewerName(emptyForm.reviewerName)
     setSelectedBookId(null)
+    autocompleteSelectionRef.current = false
     setSuggestions([])
     setShowSuggestions(false)
     setHighlightedIndex(-1)
@@ -167,15 +193,7 @@ export function AddReviewSection({ onToast }: AddReviewSectionProps) {
                 id="book-name"
                 type="text"
                 value={bookName}
-                onChange={(e) => {
-                  const value = e.target.value
-                  setBookName(value)
-                  setSelectedBookId(null)
-                  if (!value.trim()) setSuggestions([])
-                  setShowSuggestions(true)
-                  setHighlightedIndex(-1)
-                  setErrors((prev) => ({ ...prev, bookName: undefined }))
-                }}
+                onChange={(e) => handleBookNameChange(e.target.value)}
                 onFocus={() => setShowSuggestions(true)}
                 onKeyDown={(e) => {
                   if (!showSuggestions || visibleSuggestions.length === 0) return
@@ -241,7 +259,6 @@ export function AddReviewSection({ onToast }: AddReviewSectionProps) {
                 value={author}
                 onChange={(e) => {
                   setAuthor(e.target.value)
-                  setSelectedBookId(null)
                   setErrors((prev) => ({ ...prev, author: undefined }))
                 }}
                 className="form-input"
