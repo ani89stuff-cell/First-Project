@@ -2,7 +2,16 @@ import { useEffect, useRef, useState } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { useAuth } from '../hooks/useAuth'
 import { useDebounce } from '../hooks/useDebounce'
+import { signInWithGoogle } from '../lib/auth'
 import { searchBookSuggestions } from '../lib/books'
+import {
+  clearPendingReview,
+  clearPendingReviewSubmitInflight,
+  loadPendingReview,
+  markPendingReviewSubmitInflight,
+  savePendingReview,
+  type PendingReviewPayload,
+} from '../lib/pendingReview'
 import { submitReview } from '../lib/reviews'
 import { GENRES, type BookSuggestion } from '../types/book'
 import { getUserDisplayName } from '../utils/userDisplayName'
@@ -33,6 +42,8 @@ function defaultReviewerNameForUser(user: User | null): string {
 
 export function AddReviewSection({ onToast }: AddReviewSectionProps) {
   const { user, loading: authLoading } = useAuth()
+  const pendingAutoSubmitRef = useRef(false)
+  const pendingRestoredRef = useRef(false)
   const [bookName, setBookName] = useState(emptyForm.bookName)
   const [author, setAuthor] = useState(emptyForm.author)
   const [genre, setGenre] = useState(emptyForm.genre)
@@ -53,8 +64,93 @@ export function AddReviewSection({ onToast }: AddReviewSectionProps) {
 
   const debouncedBookName = useDebounce(bookName, 300)
 
+  function applyPendingToForm(pending: PendingReviewPayload) {
+    setBookName(pending.bookName)
+    setAuthor(pending.author)
+    setGenre(pending.genre)
+    setReview(pending.reviewText)
+    setReadabilityScore(pending.readabilityScore)
+    setReviewerName(pending.reviewerName)
+    setSelectedBookId(pending.bookId)
+    if (pending.bookId) {
+      autocompleteSelectionRef.current = true
+    }
+    setErrors({})
+  }
+
+  async function postReview(userId: string | null) {
+    await submitReview({
+      bookTitle: bookName,
+      author,
+      genre,
+      reviewerName,
+      reviewText: review,
+      readabilityScore: readabilityScore as number,
+      selectedBookId,
+      userId,
+    })
+  }
+
+  async function postReviewFromPending(
+    pending: PendingReviewPayload,
+    userId: string | null,
+  ) {
+    await submitReview({
+      bookTitle: pending.bookName,
+      author: pending.author,
+      genre: pending.genre,
+      reviewerName: pending.reviewerName,
+      reviewText: pending.reviewText,
+      readabilityScore: pending.readabilityScore,
+      selectedBookId: pending.bookId,
+      userId,
+    })
+  }
+
   useEffect(() => {
     if (authLoading) return
+
+    const pending = loadPendingReview()
+    if (!pending) return
+
+    if (user) {
+      if (pendingAutoSubmitRef.current) return
+      if (!markPendingReviewSubmitInflight()) return
+      pendingAutoSubmitRef.current = true
+      applyPendingToForm(pending)
+      prefilledUserIdRef.current = user.id
+
+      setSubmitting(true)
+      postReviewFromPending(pending, user.id)
+        .then(() => {
+          clearPendingReview()
+          onToast('Review posted!')
+          clearForm()
+        })
+        .catch((err) => {
+          pendingAutoSubmitRef.current = false
+          const message =
+            err && typeof err === 'object' && 'message' in err
+              ? String((err as { message: string }).message)
+              : 'Failed to post review.'
+          onToast(message)
+        })
+        .finally(() => {
+          clearPendingReviewSubmitInflight()
+          setSubmitting(false)
+        })
+      return
+    }
+
+    if (!pendingRestoredRef.current) {
+      pendingRestoredRef.current = true
+      applyPendingToForm(pending)
+    }
+  }, [user, authLoading])
+
+  useEffect(() => {
+    if (authLoading) return
+    if (loadPendingReview()) return
 
     if (user && prefilledUserIdRef.current !== user.id) {
       prefilledUserIdRef.current = user.id
@@ -171,18 +267,32 @@ export function AddReviewSection({ onToast }: AddReviewSectionProps) {
     setErrors(validationErrors)
     if (hasValidationErrors(validationErrors)) return
 
-    setSubmitting(true)
-    try {
-      await submitReview({
-        bookTitle: bookName,
+    if (!user) {
+      savePendingReview({
+        bookName,
         author,
         genre,
-        reviewerName,
         reviewText: review,
         readabilityScore: readabilityScore as number,
-        selectedBookId,
-        userId: user?.id ?? null,
+        reviewerName,
+        bookId: selectedBookId,
       })
+
+      try {
+        await signInWithGoogle()
+      } catch (err) {
+        const message =
+          err && typeof err === 'object' && 'message' in err
+            ? String((err as { message: string }).message)
+            : 'Sign in failed. Your review is saved — try again.'
+        onToast(message)
+      }
+      return
+    }
+
+    setSubmitting(true)
+    try {
+      await postReview(user.id)
       onToast('Review posted successfully')
       clearForm()
     } catch (err) {

@@ -33,7 +33,7 @@ export function AddBookReviewForm({
   onSuccess,
   onToast,
 }: AddBookReviewFormProps) {
-  const { user, loading: authLoading } = useAuth()
+  const { user, loading: authLoading, signInWithGoogle: signIn } = useAuth()
   const [review, setReview] = useState(emptyForm.review)
   const [readabilityScore, setReadabilityScore] = useState<number | null>(
     emptyForm.readabilityScore,
@@ -164,6 +164,26 @@ export function AddBookReviewForm({
             </div>
 
             <div>
+              {!authLoading && !user && (
+                <p className="mb-4 rounded-lg border border-input-border bg-white/80 px-4 py-3 text-sm text-navy-700/90">
+                  Sign in to track your reviews in My Activities.{' '}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      signIn().catch((err) => {
+                        const message =
+                          err && typeof err === 'object' && 'message' in err
+                            ? String((err as { message: string }).message)
+                            : 'Sign in failed.'
+                        onToast(message)
+                      })
+                    }}
+                    className="font-semibold text-amber-brand underline-offset-2 transition hover:text-amber-brand-hover hover:underline"
+                  >
+                    Sign In
+                  </button>
+                </p>
+              )}
               <button
                 type="submit"
                 disabled={submitting}
