@@ -21,10 +21,10 @@ export function ReadabilityScoreSelector({
               type="button"
               onClick={() => onChange(score)}
               aria-pressed={selected}
-              className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold transition-all duration-200 ease-out ${
+              className={`flex h-10 w-10 items-center justify-center rounded-full border-2 text-sm font-semibold transition-all duration-150 ease ${
                 selected
-                  ? 'border-2 border-amber-brand bg-amber-brand text-white shadow-sm'
-                  : 'border-2 border-hero-navy bg-white text-hero-navy hover:border-amber-brand hover:text-amber-brand'
+                  ? 'scale-[1.15] border-amber-brand bg-amber-brand text-white shadow-sm score-selected-pulse'
+                  : 'scale-100 border-hero-navy bg-white text-hero-navy hover:scale-110 hover:border-amber-brand hover:text-amber-brand'
               }`}
             >
               {score}

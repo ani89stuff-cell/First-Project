@@ -64,8 +64,19 @@ function App() {
         </section>
       </main>
 
-      <footer className="border-t border-input-border bg-white py-8 text-center text-sm text-navy-700/60">
-        © {new Date().getFullYear()} Book-O-Phile. All reviews are community-submitted.
+      <footer className="bg-hero-navy px-4 py-10 text-center text-white sm:px-6 lg:px-8">
+        <p className="font-display text-xl font-bold leading-none tracking-tight md:text-2xl">
+          <span className="text-white">Book</span>
+          <span className="text-amber-brand">-O-</span>
+          <span className="italic text-white">Phile</span>
+        </p>
+        <p className="mt-3 text-sm text-white/60">
+          Built for readers, by readers.
+        </p>
+        <p className="mt-4 text-sm text-white/60">
+          © {new Date().getFullYear()} Book-O-Phile. All reviews are
+          community-submitted.
+        </p>
       </footer>
 
       <Toast

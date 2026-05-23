@@ -10,6 +10,7 @@ import {
 } from '../lib/reviews'
 import type { Book } from '../types/book'
 import type { DisplayReview, Review } from '../types/review'
+import { useScrolledPast } from '../hooks/useScrolledPast'
 import { getReadabilityBadgeClasses } from '../utils/readability'
 
 function BookDetailBackLink() {
@@ -30,16 +31,17 @@ function BookDetailBackLink() {
 type StickyBookHeaderProps = {
   book: Book
   visible: boolean
+  scrolled: boolean
 }
 
-function StickyBookHeader({ book, visible }: StickyBookHeaderProps) {
+function StickyBookHeader({ book, visible, scrolled }: StickyBookHeaderProps) {
   const hasReviews = book.reviewCount > 0
 
   return (
     <div
-      className={`fixed inset-x-0 top-0 z-50 bg-hero-navy text-white shadow-md transition-transform duration-200 ease-out ${
+      className={`fixed inset-x-0 top-0 z-50 border-b border-white/10 bg-hero-navy text-white transition-all duration-200 ease-out ${
         visible ? 'translate-y-0' : '-translate-y-full'
-      }`}
+      } ${scrolled ? 'sticky-book-header-scrolled shadow-sm' : ''}`}
       aria-hidden={!visible}
     >
       <div className="mx-auto flex h-12 max-w-6xl items-center gap-3 px-4 sm:px-6 md:h-14 lg:px-8">
@@ -62,6 +64,7 @@ function StickyBookHeader({ book, visible }: StickyBookHeaderProps) {
 }
 
 function BookDetailPageContent({ id }: { id: string }) {
+  const scrolled = useScrolledPast(20)
   const headerRef = useRef<HTMLElement>(null)
   const [book, setBook] = useState<Book | null>(null)
   const [loading, setLoading] = useState(true)
@@ -189,7 +192,11 @@ function BookDetailPageContent({ id }: { id: string }) {
       ) : (
         book && (
           <>
-            <StickyBookHeader book={book} visible={stickyVisible} />
+            <StickyBookHeader
+              book={book}
+              visible={stickyVisible}
+              scrolled={scrolled}
+            />
 
             <header
               ref={headerRef}

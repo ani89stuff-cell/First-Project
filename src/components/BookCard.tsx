@@ -14,7 +14,7 @@ export function BookCard({ book, onClick }: BookCardProps) {
     <button
       type="button"
       onClick={onClick}
-      className="group flex w-full flex-col overflow-hidden rounded-xl border border-input-border bg-white text-left shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-amber-brand/40 hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-hero-navy/30"
+      className="group flex w-full flex-col overflow-hidden rounded-xl border border-input-border bg-white text-left shadow-md transition-[transform,box-shadow] duration-[250ms] ease hover:-translate-y-1.5 hover:border-amber-brand/40 hover:shadow-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-hero-navy/30"
     >
       <div className="flex aspect-[4/3] items-center justify-center bg-hero-navy">
         <span className="font-display text-6xl font-semibold text-amber-brand transition duration-200 group-hover:scale-105 sm:text-7xl">
@@ -34,7 +34,7 @@ export function BookCard({ book, onClick }: BookCardProps) {
           </span>
           {hasReviews && (
             <span
-              className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ${getReadabilityBadgeClasses(book.avgReadabilityScore)}`}
+              className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 transition duration-[250ms] ease group-hover:brightness-110 ${getReadabilityBadgeClasses(book.avgReadabilityScore)}`}
             >
               {book.avgReadabilityScore.toFixed(1)}
             </span>

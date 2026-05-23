@@ -4,14 +4,14 @@ import { searchBooks } from '../lib/books'
 import { GENRES, type Book, type SearchTab } from '../types/book'
 import { useDebounce } from '../hooks/useDebounce'
 import { BookCard } from './BookCard'
+import { BookCardSkeleton } from './BookCardSkeleton'
+import { EmptyStatePanel } from './EmptyStatePanel'
 
 const TABS: { id: SearchTab; label: string }[] = [
   { id: 'book', label: 'By Book Name' },
   { id: 'author', label: 'By Author' },
   { id: 'genre', label: 'By Genre' },
 ]
-
-const EMPTY_MESSAGE = 'No books found. Be the first to add a review.'
 
 type SearchDiscoverSectionProps = {
   refreshKey?: number
@@ -143,13 +143,16 @@ export function SearchDiscoverSection({
 
           <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {loading ? (
-              <p className="col-span-full py-12 text-center text-navy-700/70">
-                Loading books…
-              </p>
+              Array.from({ length: 6 }, (_, index) => (
+                <BookCardSkeleton key={index} />
+              ))
             ) : showEmptyMessage ? (
-              <p className="col-span-full py-12 text-center text-navy-700/70">
-                {EMPTY_MESSAGE}
-              </p>
+              <EmptyStatePanel
+                heading="No books found"
+                subtext="Try a different search or be the first to add a review"
+                ctaLabel="Add a Review"
+                ctaHref="/#home"
+              />
             ) : (
               books.map((book) => (
                 <BookCard

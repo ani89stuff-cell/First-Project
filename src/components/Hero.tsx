@@ -5,6 +5,10 @@ export function Hero() {
       className="relative flex min-h-[400px] w-full items-center overflow-hidden bg-hero-navy py-20 text-white"
     >
       <div
+        className="hero-dot-grid pointer-events-none absolute inset-0"
+        aria-hidden
+      />
+      <div
         className="hero-pattern pointer-events-none absolute inset-0 opacity-[0.35]"
         aria-hidden
       />

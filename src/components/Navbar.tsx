@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
+import { useScrolledPast } from '../hooks/useScrolledPast'
 
 const NAV_LINKS = [
   { href: '#home', label: 'Home' },
@@ -154,6 +155,7 @@ function NavbarAuth() {
 
 export function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false)
+  const scrolled = useScrolledPast(20)
 
   useEffect(() => {
     if (!menuOpen) return
@@ -165,7 +167,11 @@ export function Navbar() {
   }, [menuOpen])
 
   return (
-    <header className="sticky top-0 z-40 border-b border-input-border bg-white/95 backdrop-blur-md">
+    <header
+      className={`sticky top-0 z-40 border-b border-gray-100 bg-white transition-all duration-200 ${
+        scrolled ? 'nav-bar-scrolled' : ''
+      }`}
+    >
       <nav
         className="mx-auto flex max-w-6xl flex-nowrap items-center justify-between gap-2 px-4 py-4 sm:gap-3 sm:px-6 lg:px-8"
         aria-label="Main"

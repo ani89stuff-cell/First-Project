@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, Navigate } from 'react-router-dom'
+import { EmptyStatePanel } from '../components/EmptyStatePanel'
 import { MyActivityReviewCard } from '../components/MyActivityReviewCard'
 import { Navbar } from '../components/Navbar'
 import { Toast } from '../components/Toast'
@@ -109,17 +110,12 @@ export function MyActivitiesPage() {
             Could not load your reviews. Please try again later.
           </p>
         ) : reviews.length === 0 ? (
-          <div className="rounded-xl border border-input-border bg-white p-8 text-center shadow-sm sm:p-12">
-            <p className="text-hero-navy/90">
-              You haven&apos;t posted any reviews yet. Start exploring books!
-            </p>
-            <Link
-              to="/"
-              className="mt-6 inline-flex min-h-11 items-center text-sm font-semibold text-amber-brand transition hover:text-amber-brand-hover hover:underline"
-            >
-              Back to Home
-            </Link>
-          </div>
+          <EmptyStatePanel
+            heading="No reviews yet"
+            subtext="You haven't posted any reviews yet. Start exploring books!"
+            ctaLabel="Add a Review"
+            ctaHref="/#home"
+          />
         ) : (
           <ul className="flex flex-col gap-5 sm:gap-6">
             {reviews.map((review) => (
